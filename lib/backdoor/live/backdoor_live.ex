@@ -5,6 +5,8 @@ defmodule Backdoor.BackdoorLive do
 
   use Backdoor.Web, :live_view
 
+  require Logger
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
@@ -98,12 +100,27 @@ defmodule Backdoor.BackdoorLive do
      socket |> assign(current_session_id: session_id, logs: Backdoor.Session.get_logs(session_id))}
   end
 
+  @impl true
+  def handle_info({:put_log, log}, socket) do
+    {:noreply, socket |> assign(logs: socket.assigns.logs ++ [log])}
+  end
+
+  def handle_info(msg, state) do
+    Logger.info(
+      "[#{__MODULE__} received unexpected message:\n#{inspect(msg)}\nThe message was ignored."
+    )
+  end
+
   defp format({:error, kind, error, stack}) do
     Exception.format(kind, error, stack)
   end
 
   defp format({:input, code}) do
     code
+  end
+
+  defp format({:output, value}) do
+    value
   end
 
   defp format({:result, value}) do

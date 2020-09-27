@@ -16,7 +16,9 @@ defmodule Backdoor.Session.CodeRunner do
   end
 
   @impl true
-  def handle_call({:execute, code}, _from, state) do
+  def handle_call({:execute, code}, {from, _ref}, state) do
+    Backdoor.Session.CaptureOutput.set_as_group_leader(from, state.session_id)
+
     try do
       log(state.session_id, {:input, code})
       {result, bindings, env} = do_execute(code, state.bindings, state.env)
